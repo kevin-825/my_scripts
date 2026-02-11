@@ -34,16 +34,15 @@ echo "xxxxxxxxxxxxxxx"
 echo "xxxxxxxxxxxxxxx"
 
 create_run_container="docker run -it --name $container_name \
--v $curdir:/workdir \
+-v /home/$USER:/workdir \
 -v $host_dir_for_container/.bash_history:/home/$ContainerUSER/.bash_history \
 -v /home/$USER/.ssh:/home/$ContainerUSER/.ssh \
 -v /:/hst_root \
 -v /home/$USER/.ssh/agent/sock:/ssh-agent \
 -e SSH_AUTH_SOCK=/ssh-agent \
--e GEMINI_API_KEY=$GEMINI_API_KEY_CONTAINER \
 $dockerVolumes \
 -P $img_name "
-
+#-e GEMINI_API_KEY=$GEMINI_API_KEY_CONTAINER \
 #echo create_run_container:$create_run_container
 
 $create_run_container
