@@ -2,6 +2,7 @@
 #!/bin/bash
 
 container_name="$1"
+default_cmd="${2:-/bin/zsh}"
 
 if [ -z "$container_name" ]; then
     echo "❌ Error: container name not provided."
@@ -20,10 +21,11 @@ real_pwd="$(pwd -P)"
 if ! docker exec "$container_name" test -d "$real_pwd"; then
     echo "⚠️  Warning: Current directory $real_pwd is NOT mounted in the container."
     echo "Falling back to container's default home directory..."
-    docker exec -it "$container_name" /bin/bash
+    docker exec -it "$container_name" "$default_cmd"
 else
     # 5. Jump in at current path
-    docker exec --user $(id -u):$(id -g) -it -w "$real_pwd" "$container_name" /bin/bash
+    docker exec -it -w "$real_pwd" "$container_name" "$default_cmd"
+    #--user $(id -u):$(id -g)
 fi
 
 
