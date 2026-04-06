@@ -53,7 +53,7 @@ setup_env(){
   --hostname "$host_name_for_container"     \
   -v /home/$USER:/workdir    \
   -v $host_dir_for_container/.bash_history:/home/$ContainerUSER/.bash_history     \
-  -v $host_dir_for_container:/home/$ContainerUSER/.history_dir      \
+  -v $host_dir_for_container:/.history_dir      \
   -v /home/$USER/.ssh:/home/$ContainerUSER/.ssh     \
   -v /:/hst_root     \
   -v /home/$USER/.ssh/agent/sock:/ssh-agent     \
