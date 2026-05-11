@@ -5,6 +5,7 @@ set -u
 img_name=""
 container_name=""
 create_container_cmd="" # Initialize globally
+#default_cmd="${3:-/bin/bash}"
 
 setup_env(){
   img_name=$1
@@ -29,12 +30,22 @@ setup_env(){
       echo ">>> [INFO] Default user in image: $ContainerUSER"
   fi
 
+  # 1. Remove everything up to the last slash (namespace)
+  # ${var##*/} removes the longest prefix matching */
+  local name="${img_name##*/}"
+  
+  # 2. Remove everything after the first colon (tag)
+  # ${var%%:*} removes the longest suffix matching :*
+  name="${name%%:*}"
+  host_name_for_container="${name}__${container_name}"
+  echo "host_name_for_container: $host_name_for_container"
+
   img_name_path="${img_name//:/_}"
 
   mkdir -p ~/Containers
   curdir="$(pwd -P)"
   host_dir_for_container=~/Containers/$img_name_path
-  host_name_for_container="${img_name_path}__${container_name}"
+
   mkdir -p "$host_dir_for_container"
 
   # Source external variables
