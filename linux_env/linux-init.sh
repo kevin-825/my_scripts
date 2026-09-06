@@ -9,6 +9,7 @@ python-is-python3 \
 openssh-server \
 apache2 \
 clang-format \
+jq \
 git git-core git-gui gitweb cgit gitk git-daemon-run git-cvs git-svn gettext -y
 
 
@@ -116,3 +117,9 @@ enable_git_credential_cache() {
 
 # Execute (Caching for 86400 seconds = 24 hours)
 enable_git_credential_cache 86400
+
+ln -s /mnt/wsl/disk1 d1
+ln -s /mnt/wsl/disk2 d2
+ln -s /mnt/wsl/ramdisk5 rd5
+ln -s /mnt/wsl/vhd0 vhd0
+ln -s /mnt/wsl/vhd1 vhd1
