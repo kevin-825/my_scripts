@@ -1,0 +1,163 @@
+#!/usr/bin/env bash
+
+# ============================================================
+# Unified WSL2 Proxy Manager
+# Controls:
+#   - Shell proxy (HTTP_PROXY / HTTPS_PROXY / NO_PROXY)
+#   - Docker daemon proxy (systemd override)
+#   - BuildKit proxy (driver-opts)
+# ============================================================
+
+DOCKER_OVERRIDE_DIR="/etc/systemd/system/docker.service.d"
+DOCKER_OVERRIDE_FILE="$DOCKER_OVERRIDE_DIR/override.conf"
+
+# ------------------------------------------------------------
+# Helper: remove shell proxy
+# ------------------------------------------------------------
+_clear_shell_proxy() {
+    unset HTTP_PROXY
+    unset HTTPS_PROXY
+    unset NO_PROXY
+}
+
+# ------------------------------------------------------------
+# Helper: set shell proxy
+# ------------------------------------------------------------
+_set_shell_proxy() {
+    export HTTP_PROXY="http://${WIN_GATEWAY}:${PROXY_PORT}"
+    export HTTPS_PROXY="http://${WIN_GATEWAY}:${PROXY_PORT}"
+    export NO_PROXY="localhost,127.0.0.1"
+}
+
+# ------------------------------------------------------------
+# Docker daemon proxy ON
+# ------------------------------------------------------------
+_daemon_proxy_on() {
+    local PROXY_ADDR="http://${WIN_GATEWAY}:${PROXY_PORT}"
+
+    sudo mkdir -p "$DOCKER_OVERRIDE_DIR"
+
+    sudo tee "$DOCKER_OVERRIDE_FILE" >/dev/null <<EOF
+[Service]
+Environment="HTTP_PROXY=$PROXY_ADDR"
+Environment="HTTPS_PROXY=$PROXY_ADDR"
+Environment="NO_PROXY=localhost;127.0.0.1"
+EOF
+
+    sudo systemctl daemon-reload
+    sudo systemctl restart docker
+}
+
+
+
+# ------------------------------------------------------------
+# Docker daemon proxy OFF
+# ------------------------------------------------------------
+_daemon_proxy_off() {
+    sudo rm -f "$DOCKER_OVERRIDE_FILE"
+    sudo systemctl daemon-reload
+    sudo systemctl restart docker
+}
+
+# ------------------------------------------------------------
+# BuildKit proxy ON
+# ------------------------------------------------------------
+_buildkit_proxy_on() {
+    docker buildx rm -f mybuilder >/dev/null 2>&1
+
+    docker buildx create \
+        --name mybuilder \
+        --driver docker-container \
+        --driver-opt env.http_proxy="http://${WIN_GATEWAY}:${PROXY_PORT}" \
+        --driver-opt env.https_proxy="http://${WIN_GATEWAY}:${PROXY_PORT}" \
+        --driver-opt env.no_proxy="localhost;127.0.0.1" \
+        --use >/dev/null
+}
+
+# ------------------------------------------------------------
+# BuildKit proxy OFF
+# ------------------------------------------------------------
+_buildkit_proxy_off() {
+    docker buildx rm mybuilder >/dev/null 2>&1
+    docker buildx create --name mybuilder --driver docker-container --use >/dev/null
+}
+
+# ------------------------------------------------------------
+# Public: proxy ON
+# ------------------------------------------------------------
+proxy_on() {
+    echo "[PROXY] Enabling unified proxy"
+
+    _set_shell_proxy
+    _daemon_proxy_on
+    _buildkit_proxy_on
+
+    echo "[PROXY] Shell + Docker + BuildKit proxy enabled"
+}
+
+# ------------------------------------------------------------
+# Public: proxy OFF
+# ------------------------------------------------------------
+proxy_off() {
+    echo "[PROXY] Disabling unified proxy"
+
+    _clear_shell_proxy
+    _daemon_proxy_off
+    _buildkit_proxy_off
+
+    echo "[PROXY] Shell + Docker + BuildKit proxy disabled"
+}
+
+# ------------------------------------------------------------
+# Public: proxy AUTO
+# ------------------------------------------------------------
+proxy_auto() {
+    echo "[PROXY-AUTO] Checking proxy reachability at ${WIN_GATEWAY}:${PROXY_PORT}"
+
+    if timeout 0.2 bash -c "</dev/tcp/$WIN_GATEWAY/$PROXY_PORT" 2>/dev/null; then
+        echo "[PROXY-AUTO] Proxy reachable → enabling"
+        proxy_on
+    else
+        echo "[PROXY-AUTO] Proxy unreachable → disabling"
+        proxy_off
+    fi
+}
+
+# ------------------------------------------------------------
+# Public: proxy STATUS
+# ------------------------------------------------------------
+proxy_status() {
+    echo "=== Shell Proxy ==="
+    env | grep -i proxy || echo "No shell proxy"
+
+    echo
+    echo "=== Docker Daemon Proxy ==="
+    systemctl show docker.service | grep -iE 'HTTP_PROXY|HTTPS_PROXY|NO_PROXY' \
+        || echo "No daemon proxy"
+
+    echo
+    echo "=== BuildKit Proxy ==="
+    docker buildx inspect 2>/dev/null | grep -iE 'http_proxy|https_proxy|no_proxy' \
+        || echo "No BuildKit proxy"
+}
+
+# ------------------------------------------------------------
+# Main logic (only runs when executed)
+# ------------------------------------------------------------
+proxy_main() {
+    case "$1" in
+        on) proxy_on ;;
+        off) proxy_off ;;
+        auto) proxy_auto ;;
+        status) proxy_status ;;
+        "" ) ;;   # do nothing when sourced
+        *)
+            echo "Usage: proxy {on|off|auto|status}"
+            ;;
+    esac
+}
+
+# Only run main logic when executed, not sourced
+if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
+    proxy_main "$@"
+fi
