@@ -4,7 +4,9 @@ set -euo pipefail
 sudo apt update && sudo apt install \
 pigz \
 vim \
-gcc\
+gcc \
+make \
+util-linux-extra \
 python-is-python3 \
 openssh-server \
 apache2 \
