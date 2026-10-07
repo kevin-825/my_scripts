@@ -11,8 +11,10 @@ python-is-python3 \
 openssh-server \
 apache2 \
 clang-format \
+lsb-release \
 jq \
-git git-core git-gui gitweb cgit gitk git-daemon-run git-cvs git-svn gettext -y
+parted dosfstools e2fsprogs \
+git git-filter-repo git-gui gitweb cgit gitk git-cvs git-svn gettext -y
 
 
 #clang-format usage:
