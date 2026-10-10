@@ -10,7 +10,7 @@ create_container_cmd="" # Initialize globally
 setup_env(){
   img_name=$1
   container_name=$2
-  
+
   if [ -z "$container_name" ]; then
       echo ">>> [ERROR] Missing container name" >&2
       exit 1  # FIX 1: Stop execution
@@ -60,7 +60,7 @@ setup_env(){
 
 
   # FIX 4: Use ${dockerVolumes:-} to prevent set -u crashes if the variable is missing
-  create_container_cmd="docker run -it --name $container_name    \
+  create_container_cmd="docker run -it --name $container_name   ${3:-} \
   --hostname "$host_name_for_container"     \
   -v /home/$USER:/workdir    \
   -v $host_dir_for_container/.bash_history:/home/$ContainerUSER/.bash_history     \
