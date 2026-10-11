@@ -37,8 +37,8 @@ if [ -f "$HOME/.wsl-proxy-env" ]; then
     source "$HOME/.wsl-proxy-env"
 fi
 
-#if [ -f /home/kflyn/vhd0/opt/path_config.sh ]; then
-#    . /home/kflyn/vhd0/opt/path_config.sh
+#if [ -f /home/${USER}/vhd0/opt/path_config.sh ]; then
+#    . /home/${USER}/vhd0/opt/path_config.sh
 #fi
 
 
@@ -47,7 +47,7 @@ alias cd2k825Repos='cd /mnt/wsl/disk2/k825Repos'
 alias cd2qemu-riscv-sdk='cd /mnt/wsl/disk2/k825Repos/qemu-riscv-sdk'
 alias cd2MyProjects='cd /mnt/wsl/disk2/k825Repos/MyProjects'
 
-alias chowndir="sudo chown -R kflyn:kflyn "
+alias chowndir="sudo chown -R ${USER}:${USER} "
 
 # Runs GDB using the rvdev image
 alias riscv64-unknown-elf-gdb='docker run --rm -it \
@@ -61,9 +61,9 @@ alias riscv64-unknown-elf-gdb='docker run --rm -it \
 export PATH="$PATH\
 :/mnt/wsl/vhd0/opt/riscv/rv_gnu_toolchain_relocated/bin\
 :/mnt/wsl/vhd1/opt/riscv/rv_gnu_toolchain_newlib_std/bin\
-:/home/kflyn/my_scripts\
-:/home/kflyn/my_scripts/linux_env\
-:/home/kflyn/my_scripts/docker\
+:/home/${USER}/my_scripts\
+:/home/${USER}/my_scripts/linux_env\
+:/home/${USER}/my_scripts/docker\
 "
 
 
@@ -74,12 +74,13 @@ export PATH="$PATH\
 # to ensure all PATH modifications are included
 export PATH=$(echo -n $PATH | tr ':' '\n' | awk '!x[$0]++' | paste -sd ":" -)
 
-ramdisk_owner=$(stat -c '%U' /mnt/wsl/ramdisk5/) 
-if [ "$ramdisk_owner" != "$USER" ]; then
-    echo "Changing ownership of /mnt/wsl/ramdisk5/ to $USER"
-    sudo chown -R "$USER":"$USER" /mnt/wsl/ramdisk5/
+if [ -d "/mnt/wsl/ramdisk5" ]; then
+    ramdisk_owner=$(stat -c '%U' /mnt/wsl/ramdisk5/) 
+    if [ "$ramdisk_owner" != "$USER" ]; then
+        echo "Changing ownership of /mnt/wsl/ramdisk5/ to $USER"
+        sudo chown -R "$USER":"$USER" /mnt/wsl/ramdisk5/
+    fi
 fi
-
 
 
 alias wrk="cd /mnt/wsl/ramdisk5/ && git clone git@github.com:kevin-825/QemuEmbeddedLinux.git \
