@@ -1,0 +1,18 @@
+1.change setting on the web interface,using the follwoing:
+https://myvpn.yultuzs.com/<subscription-token>
+
+2. add subscription to v2rayN use the following:
+https://myvpn.yultuzs.com/<subscription-token>/sub
+
+
+
+3. steps to setup v2rayN:
+  1)  add subscription grop use a name like "myVPN", and with the 
+  usrl  like this:https://xxxxxxx/sub
+
+  set update time 60 min or higher
+
+  2) setting -> option setting -> core:basic setting -> enable "Allow connections from the LAN "
+
+
+  3) use TUN mode
