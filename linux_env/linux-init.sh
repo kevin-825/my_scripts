@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+
+# this is linux_dev_env_init.sh
 set -euo pipefail
 
 sudo apt update && sudo apt install \
